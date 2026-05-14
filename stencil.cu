@@ -21,7 +21,7 @@ int main()
     cudaMalloc(&dev, sizeof(int) * FIXED); // << --- cudaMALLOC returns error code #FIX 1
     cudaMemcpy(dev, host, sizeof(int) * FIXED, cudaMemcpyHostToDevice);
 
-    memTest<<<1, 20>>(dev, FIXED);
+    memTest<<<1, 20>>>(dev, FIXED);
 
     cudaMemcpy(host, dev, sizeof(int) * FIXED, cudaMemcpyDeviceToHost);
 
