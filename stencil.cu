@@ -3,8 +3,8 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 
-static int FIXED = 32; // << -- STATIC Int is only accessible on CPU! Not GPU. #FIX 2
-__global__ void memTest(int *x, int size) // Pass CPU integer as size. #FIX 2
+#define FIXED 32; // << -- STATIC Int is only accessible on CPU! Not GPU. Change to MACRO#FIX 2
+__global__ void memTest(int *x) 
 {
     int workID = threadIdx.x + (blockDim.x * blockIdx.x);
     
@@ -21,7 +21,7 @@ int main()
     cudaMalloc(&dev, sizeof(int) * FIXED); // << --- cudaMALLOC returns error code #FIX 1
     cudaMemcpy(dev, host, sizeof(int) * FIXED, cudaMemcpyHostToDevice);
 
-    memTest<<<1, 32>>>(dev, FIXED);
+    memTest<<<1, 32>>>(dev);
 
     cudaMemcpy(host, dev, sizeof(int) * FIXED, cudaMemcpyDeviceToHost);
 
