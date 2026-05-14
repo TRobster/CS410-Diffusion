@@ -30,7 +30,14 @@ int main()
 
     for (int i = 0; i < FIXED; i++)
     {
-        printf("Binary values %d\n", host[i]);
+        if (host[i] > 0)
+        {
+        printf("GPU Set values %d\n", host[i]);
+        }
+        else
+        {
+        printf("Garbage data %d\n", host[i]);
+        }
     }
 
 }   
