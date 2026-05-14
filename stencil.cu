@@ -8,7 +8,7 @@ __global__ void memTest(int *x, int size) // Pass CPU integer as size. #FIX 2
 {
     int workID = threadIdx.x + (blockDim.x * blockIdx.x);
     
-    x[workID] = (workID < (FIXED / 2));
+    x[workID] = (workID < (size / 2));
 }
 
 int main() 
