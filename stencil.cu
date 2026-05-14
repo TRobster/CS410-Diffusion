@@ -27,7 +27,7 @@ int main()
 
     for (int i = 0; i < FIXED; i++)
     {
-        printf("Binary values %d", host[i]);
+        printf("Binary values %d %d\n", i, host[i]);
     }
 
 }   
