@@ -9,8 +9,8 @@
 #SBATCH --gres=gpu:1
 #SBATCH --constraint=gpu-80gb,no-mig
 #SBATCH --cpus-per-task=8
-#SBATCH --output=./out_cuda_%j
-#SBATCH --error=./errors_cuda_%j
+#SBATCH --output=./out_Cuda410_%j
+#SBATCH --error=./errors_Cuda410_%j
 
 # Load the modules instead of conda
 module load gcc
