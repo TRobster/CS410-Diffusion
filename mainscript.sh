@@ -1,5 +1,3 @@
-
-
 #!/bin/bash
 #SBATCH --job-name=my_cuda_job
 #SBATCH --partition=gpu
