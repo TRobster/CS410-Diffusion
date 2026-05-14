@@ -18,7 +18,7 @@ int main()
     host = malloc(host, sizeof(int) * FIXED);
     // Device memory allocating
     int *dev; 
-    dev = cudaMalloc((void**)&dev, sizeof(int) * FIXED);
+    dev = cudaMalloc(&dev, sizeof(int) * FIXED);
     cudaMemcpy(dev, host, sizeof(int) * FIXED, cudaMemcpyHostToDevice);
 
     memTest<<<1, 32>>>(dev);
