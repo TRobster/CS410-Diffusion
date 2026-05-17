@@ -14,6 +14,10 @@ __global__ void memTest(int *x, int size) // Pass CPU integer as size. #FIX 2
     }
 }
 
+__global__ void speedStencil()
+{
+    double len = gridDim.x * blockDim.xl; 
+}
 int main() 
 {
     // Host memory allocating 
