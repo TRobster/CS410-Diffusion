@@ -32,7 +32,7 @@ __global__ void stencil_naive(float* u_new, const float* u_old,
     }
 
 }
-
+/*
 __global__ void stencil_shared(float* u_new, float* u_old,
                                 int N, float r) {
     extern __shared__ float tile[];  // size = blockDim.x + 2
@@ -48,6 +48,7 @@ __global__ void stencil_shared(float* u_new, float* u_old,
     
     // Step 4: compute stencil using tile[], not u_old[]
 }
+    */
 int main() 
 {
 
