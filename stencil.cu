@@ -32,10 +32,7 @@ __global__ void stencil_naive(float* u_new, float* u_old,
 }
 int main() 
 {
-    // timing 
-    cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+
 
     float *u_old;
     // Host memory allocating 
@@ -52,21 +49,7 @@ int main()
     cudaMalloc(&d_u_old, sizeof(float) * ts);
     cudaMalloc(&d_u_new, sizeof(float) * ts);
     cudaMemcpy(d_u_old, u_old, sizeof(float) * ts, cudaMemcpyHostToDevice);
-
-
-    cudaEventRecord(start);
-    stencil_naive<<<32, 512>>>(d_u_new, d_u_old, 16384, 0.5);
-    cudaEventRecord(stop);
-
-    cudaEventSynchronize(stop);
-    float ms = 0;
-    cudaEventElapsedTime(&ms, start, stop);
-    printf("Kernel time: %f ms\n", ms);
-
-
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
-    
+    stencil_naive<<<32, 512>>>(d_u_new, d_u_old, ts, 0.25);
     cudaMemcpy(u_old, d_u_new, sizeof(float) * ts, cudaMemcpyDeviceToHost);
 
     for (int i = 0; i < ts; i++)
