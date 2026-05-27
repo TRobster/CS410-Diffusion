@@ -33,7 +33,6 @@ __global__ void stencil_naive(float* u_new, float* u_old,
 int main() 
 {
     float *u_old;
-    float *u_new; 
     // Host memory allocating 
     u_old = (float*)malloc(sizeof(float) * ts);
     for (int i = 0; i < ts; i++)
