@@ -18,7 +18,7 @@ __global__ void memTest(int *x, int size) // Pass CPU integer as size. #FIX 2
     }
 }
 
-__global__ void stencil_naive(float* u_new, float* u_old, 
+__global__ void stencil_naive(float* u_new, const float* u_old, 
                                int N, float r) {
     int workID = blockIdx.x * blockDim.x + threadIdx.x;
     
