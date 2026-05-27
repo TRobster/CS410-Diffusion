@@ -37,16 +37,10 @@ int main()
     u_old = (float*)malloc(sizeof(float) * ts);
     for (int i = 0; i < ts; i++)
     {
-        if (i > 0 && i < ts-1)
-        {
-            u_old[i] = 1.0;
-        }
-        else
-        {
-            u_old[i] = 0.0;
-            printf("%f\n", u_old[i]);
-        }
+        u_old[i] = 0.0f;
     }
+    
+    u_old[8192] = 1.0f;
     u_old[0] = -999.0f;
     u_old[ts - 1] = -999.0f; 
     //int *host;
@@ -74,6 +68,7 @@ int main()
         printf("GPU Set values %f\n", u_old[i]);
         }
     }
+    printf("when t = 0: %f, when f(x,t) = 0: %f\n", u_old[0], u_old[ts -1]);
     free(u_old);
     cudaFree(d_u_old);
     cudaFree(d_u_new);
