@@ -48,15 +48,15 @@ int main()
         }
     }
     u_old[0] = -999.0f;
-
+    u_old[ts - 1] = -999.0f; 
     //int *host;
     //host = (int*)malloc(sizeof(int) * FIXED); // << --- MALLOC returns pointer #FIX 1
     // Device memory allocating
-    float *u_new;
-    cudaMalloc(&u_new, sizeof(float) * ts);
-    u_new[ts - 1] = -999.0f; 
-    cudaMemcpy(u_new, u_old, sizeof(float) * 16384, cudaMemcpyHostToDevice);
-    stencil_naive<<<32, 512>>>(u_new, u_old, 16384, 0.25);
+    float *d_u_old, *d_u_new;
+    cudaMalloc(&d_u_old, sizeof(float) * ts);
+    cudaMalloc(&d_u_new, sizeof(float) * ts);
+    cudaMemcpy(d_u_old, u_old, sizeof(float) * ts, cudaMemcpyHostToDevice);
+    stencil_naive<<<32, 512>>>(d_u_new, d_u_old, 16384, 0.25f);
     
     /*
     int *dev; 
@@ -65,11 +65,11 @@ int main()
 
     memTest<<<1, 20>>>(dev, FIXED);
     */
-    cudaMemcpy(u_old, u_new, sizeof(float) * ts, cudaMemcpyDeviceToHost);
+    cudaMemcpy(u_old, d_u_new, sizeof(float) * ts, cudaMemcpyDeviceToHost);
 
     for (int i = 0; i < ts; i++)
     {
-        if (u_old[i] == 8191 && u_old[i] == 8192 && u_old[i] == 8193)
+        if (i == 8191 || i == 8192 || i == 8193)
         {
         printf("GPU Set values %f\n", u_old[i]);
         }
@@ -79,5 +79,6 @@ int main()
         }
     }
     free(u_old);
-    free(u_new);
+    cudaFree(d_u_old);
+    cudaFree(d_u_new);
 }   
