@@ -30,6 +30,22 @@ __global__ void stencil_naive(float* u_new, float* u_old,
     }
 
 }
+
+__global__ void stencil_shared(float* u_new, float* u_old,
+                                int N, float r) {
+    extern __shared__ float tile[];  // size = blockDim.x + 2
+    
+    int j     = blockIdx.x * blockDim.x + threadIdx.x;
+    int t_idx = threadIdx.x + 1;  // local index with offset for halo
+    
+    // Step 1: load interior of tile into shared memory
+    
+    // Step 2: load halo cells (who is responsible for this?)
+    
+    // Step 3: __syncthreads()
+    
+    // Step 4: compute stencil using tile[], not u_old[]
+}
 int main() 
 {
 
