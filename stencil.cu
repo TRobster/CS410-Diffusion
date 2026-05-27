@@ -5,7 +5,7 @@
 #include <math.h>
 
 
-//static int FIXED = 32; // << -- STATIC Int is only accessible on CPU! Not GPU. #FIX 2
+static int ts = 16384; // << -- STATIC Int is only accessible on CPU! Not GPU. #FIX 2
 __global__ void memTest(int *x, int size) // Pass CPU integer as size. #FIX 2
 {
     int workID = threadIdx.x + (blockDim.x * blockIdx.x);
@@ -35,10 +35,10 @@ int main()
     float *u_old;
     float *u_new; 
     // Host memory allocating 
-    u_old = (float*)malloc(sizeof(float) * 10000);
-    for (int i = 0; i < 10000; i++)
+    u_old = (float*)malloc(sizeof(float) * ts);
+    for (int i = 0; i < ts; i++)
     {
-        if (i > 0 && i < 10000-1)
+        if (i > 0 && i < ts-1)
         {
             u_old[i] = 1.0;
         }
@@ -48,36 +48,37 @@ int main()
             printf("%f\n", u_old[i]);
         }
     }
-    /*
-    block 1
-    int *host;
-    host = (int*)malloc(sizeof(int) * FIXED); // << --- MALLOC returns pointer #FIX 1
+    u_old[0] = -999.0f;
+
+    //int *host;
+    //host = (int*)malloc(sizeof(int) * FIXED); // << --- MALLOC returns pointer #FIX 1
     // Device memory allocating
-    float *u_new; 
-    cudaMalloc(&u_new, sizeof(float) * 10000);
-    cudaMemcpy(u_new, u_old, sizeof(float) * 10000, cudaMemcpyHostToDevice);
-    */
+    float *u_new;
+    cudaMalloc(&u_new, sizeof(float) * ts);
+    u_new[ts - 1] = -999.0f; 
+    cudaMemcpy(u_new, u_old, sizeof(float) * 16384, cudaMemcpyHostToDevice);
+    stencil_naive<<<32, 512>>>(u_new, u_old, 16384, 0.25);
+    
     /*
-    block 2 (not needed for right now)
     int *dev; 
     cudaMalloc(&dev, sizeof(int) * FIXED); // << --- cudaMALLOC returns error code #FIX 1
     cudaMemcpy(dev, host, sizeof(int) * FIXED, cudaMemcpyHostToDevice);
 
     memTest<<<1, 20>>>(dev, FIXED);
+    */
+    cudaMemcpy(u_old, u_new, sizeof(float) * ts, cudaMemcpyDeviceToHost);
 
-    cudaMemcpy(host, dev, sizeof(int) * FIXED, cudaMemcpyDeviceToHost);
-
-    for (int i = 0; i < FIXED; i++)
+    for (int i = 0; i < ts; i++)
     {
-        if (host[i] > 0)
+        if (u_old[i] == 8191 && u_old[i] == 8192 && u_old[i] == 8193)
         {
-        printf("GPU Set values %d\n", host[i]);
+        printf("GPU Set values %f\n", u_old[i]);
         }
-        else
+        else 
         {
-        printf("Garbage data %d\n", host[i]);
+            printf("Edges %f and %f\n", u_old[0], u_old[16384-1]);
         }
     }
-    */
     free(u_old);
+    free(u_new);
 }   
