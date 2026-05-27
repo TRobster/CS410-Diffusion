@@ -73,10 +73,6 @@ int main()
         {
         printf("GPU Set values %f\n", u_old[i]);
         }
-        else 
-        {
-            printf("Edges %f and %f\n", u_old[0], u_old[16384-1]);
-        }
     }
     free(u_old);
     cudaFree(d_u_old);
