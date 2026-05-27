@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#define N 64
+#define K 64
 #define TPB 32
 
 static int ts = 16384; // << -- STATIC Int is only accessible on CPU! Not GPU. #FIX 2
