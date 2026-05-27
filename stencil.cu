@@ -45,7 +45,7 @@ int main()
         else
         {
             u_old[i] = 0.0;
-            printf("%d\n", u_old[i]);
+            printf("%f\n", u_old[i]);
         }
     }
     /*
