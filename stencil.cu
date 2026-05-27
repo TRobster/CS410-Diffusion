@@ -4,10 +4,11 @@
 #include <stdio.h>
 #include <math.h>
 
-#define K 64
-#define TPB 32
+#define K 32
+#define TPB 512
+#define RAD 1 // <-- number of halo cells needed for the boundary conditions of a given stencil. For central difference 1D, simply 1 neighbor each side. 
 
-static int ts = 16384; // << -- STATIC Int is only accessible on CPU! Not GPU. #FIX 2
+static int ts = TPB * K; // << -- STATIC Int is only accessible on CPU! Not GPU. #FIX 2
 __global__ void memTest(int *x, int size) // Pass CPU integer as size. #FIX 2
 {
     int workID = threadIdx.x + (blockDim.x * blockIdx.x);
@@ -68,7 +69,11 @@ int main()
     cudaMalloc(&d_u_old, sizeof(float) * ts);
     cudaMalloc(&d_u_new, sizeof(float) * ts);
     cudaMemcpy(d_u_old, u_old, sizeof(float) * ts, cudaMemcpyHostToDevice);
+
     stencil_naive<<<32, 512>>>(d_u_new, d_u_old, ts, 0.25);
+
+    // int sByte = (512 + 2) * sizeof(float); 
+    // stencil_shared<<<32, 512, sByte>>>();
     cudaMemcpy(u_old, d_u_new, sizeof(float) * ts, cudaMemcpyDeviceToHost);
 
     for (int i = 0; i < ts; i++)
