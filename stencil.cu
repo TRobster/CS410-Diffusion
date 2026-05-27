@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <math.h>
 
+<<<<<<< HEAD
+static int FIXED = 32; // << -- STATIC Int is only accessible on CPU! Not GPU. #FIX 2
+=======
 
 static int ts = 16384; // << -- STATIC Int is only accessible on CPU! Not GPU. #FIX 2
 __global__ void memTest(int *x, int size) // Pass CPU integer as size. #FIX 2
