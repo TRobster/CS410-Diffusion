@@ -41,8 +41,6 @@ int main()
     }
     
     u_old[8192] = 1.0f;
-    u_old[0] = -999.0f;
-    u_old[ts - 1] = -999.0f; 
     //int *host;
     //host = (int*)malloc(sizeof(int) * FIXED); // << --- MALLOC returns pointer #FIX 1
     // Device memory allocating
