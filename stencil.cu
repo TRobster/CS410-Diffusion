@@ -32,6 +32,11 @@ __global__ void stencil_naive(float* u_new, float* u_old,
 }
 int main() 
 {
+    // timing 
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
     float *u_old;
     // Host memory allocating 
     u_old = (float*)malloc(sizeof(float) * ts);
@@ -39,24 +44,29 @@ int main()
     {
         u_old[i] = 0.0f;
     }
-    
+    // setting peak in middle
     u_old[8192] = 1.0f;
-    //int *host;
-    //host = (int*)malloc(sizeof(int) * FIXED); // << --- MALLOC returns pointer #FIX 1
+
     // Device memory allocating
     float *d_u_old, *d_u_new;
     cudaMalloc(&d_u_old, sizeof(float) * ts);
     cudaMalloc(&d_u_new, sizeof(float) * ts);
     cudaMemcpy(d_u_old, u_old, sizeof(float) * ts, cudaMemcpyHostToDevice);
-    stencil_naive<<<32, 512>>>(d_u_new, d_u_old, 16384, 0.5);
-    
-    /*
-    int *dev; 
-    cudaMalloc(&dev, sizeof(int) * FIXED); // << --- cudaMALLOC returns error code #FIX 1
-    cudaMemcpy(dev, host, sizeof(int) * FIXED, cudaMemcpyHostToDevice);
 
-    memTest<<<1, 20>>>(dev, FIXED);
-    */
+
+    cudaEventRecord(start);
+    stencil_naive<<<32, 512>>>(d_u_new, d_u_old, 16384, 0.5);
+    cudaEventRecord(stop);
+
+    cudaEventSynchronize(stop);
+    float ms = 0;
+    cudaEventElapsedTime(&ms, start, stop);
+    printf("Kernel time: %f ms\n", ms);
+
+
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
+    
     cudaMemcpy(u_old, d_u_new, sizeof(float) * ts, cudaMemcpyDeviceToHost);
 
     for (int i = 0; i < ts; i++)
