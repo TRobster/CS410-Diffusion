@@ -16,32 +16,49 @@ __global__ void memTest(int *x, int size) // Pass CPU integer as size. #FIX 2
     }
 }
 
-__global__ void speedStencil(float *x, int size)
-{
-    int workID = threadIdx.x + (blockDim.x * blockIdx.x); 
-    if (workID == 0 || workID == 1023) {
-        return; // The thread exits immediately
-    }
-    if (workID < size)
+__global__ void stencil_naive(float* u_new, float* u_old, 
+                               int N, float r) {
+    int workID = blockIdx.x * blockDim.x + threadIdx.x;
+    
+    // your logic here
+    // r = K*dt/dx^2
+    if (workID > 0 && workID < N-1)
     {
-        x[workID] = x[workID] + 0.25 * (x[workID-1] - 2*x[workID] + x[workID+ 1]);
+        float ld = u_old[workID+1];
+        float rd = u_old[workID-1];
+        u_new[workID] = u_old[workID] + r * (ld - 2 * u_old[workID] + rd); 
     }
+
 }
 int main() 
 {
-    float u[1024]; 
-    u[0] = 0.0;
-    u[512] = 1.0;
-    u[1023] = 0.0;
-    for (int i = 0; i < 1024; i++)
-    {
-        u[i] = exp(-(i-512.0f)*(i-512.0f) / (2.0f*50.0f*50.0f));
-    }
-\
+    float *u_old;
+    float *u_new; 
     // Host memory allocating 
+    u_old = (float*)malloc(sizeof(float) * 10000);
+    for (int i = 0; i < 10000; i++)
+    {
+        if (i > 0 && i < 10000-1)
+        {
+            u_old[i] = 1.0;
+        }
+        else
+        {
+            u_old[i] = 0.0;
+            printf("%d\n", u_old[i]);
+        }
+    }
+    /*
+    block 1
     int *host;
     host = (int*)malloc(sizeof(int) * FIXED); // << --- MALLOC returns pointer #FIX 1
     // Device memory allocating
+    float *u_new; 
+    cudaMalloc(&u_new, sizeof(float) * 10000);
+    cudaMemcpy(u_new, u_old, sizeof(float) * 10000, cudaMemcpyHostToDevice);
+    */
+    /*
+    block 2 (not needed for right now)
     int *dev; 
     cudaMalloc(&dev, sizeof(int) * FIXED); // << --- cudaMALLOC returns error code #FIX 1
     cudaMemcpy(dev, host, sizeof(int) * FIXED, cudaMemcpyHostToDevice);
@@ -61,5 +78,6 @@ int main()
         printf("Garbage data %d\n", host[i]);
         }
     }
-
+    */
+    free(u_old);
 }   
