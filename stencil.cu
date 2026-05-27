@@ -48,7 +48,7 @@ int main()
     cudaMalloc(&d_u_old, sizeof(float) * ts);
     cudaMalloc(&d_u_new, sizeof(float) * ts);
     cudaMemcpy(d_u_old, u_old, sizeof(float) * ts, cudaMemcpyHostToDevice);
-    stencil_naive<<<32, 512>>>(d_u_new, d_u_old, 16384, 0.25f);
+    stencil_naive<<<32, 512>>>(d_u_new, d_u_old, 16384, 1);
     
     /*
     int *dev; 
