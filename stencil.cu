@@ -5,7 +5,7 @@
 #include <math.h>
 
 
-static int FIXED = 32; // << -- STATIC Int is only accessible on CPU! Not GPU. #FIX 2
+//static int FIXED = 32; // << -- STATIC Int is only accessible on CPU! Not GPU. #FIX 2
 __global__ void memTest(int *x, int size) // Pass CPU integer as size. #FIX 2
 {
     int workID = threadIdx.x + (blockDim.x * blockIdx.x);
