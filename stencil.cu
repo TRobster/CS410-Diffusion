@@ -6,6 +6,7 @@
 
 #define K 32
 #define TPB 512
+// RAD = ceil(N / 2) where N is the total order N'th derivative. 
 #define RAD 1 // <-- number of halo cells needed for the boundary conditions of a given stencil. For central difference 1D, simply 1 neighbor each side. 
 
 static int ts = TPB * K; // << -- STATIC Int is only accessible on CPU! Not GPU. #FIX 2
@@ -33,27 +34,27 @@ __global__ void stencil_naive(float* u_new, const float* u_old,
     }
 
 }
-/*
+
 __global__ void stencil_shared(float* u_new, float* u_old,
                                 int N, float r) {
     extern __shared__ float tile[];  // size = blockDim.x + 2
     
-    int j     = blockIdx.x * blockDim.x + threadIdx.x;
-    int t_idx = threadIdx.x + 1;  // local index with offset for halo
+    int i     = blockIdx.x * blockDim.x + threadIdx.x;
+    int s_idx = threadIdx.x + RAD;  // local index with offset for halo
     
     // Step 1: load interior of tile into shared memory
-    
+    tile[s_idx] = u_old[i]; 
     // Step 2: load halo cells (who is responsible for this?)
     
     // Step 3: __syncthreads()
     
     // Step 4: compute stencil using tile[], not u_old[]
 }
-    */
+
 int main() 
 {
-
-
+    // Dynamic shared memory size. For 2 ends, allocate needed amount of RAD for Halo Cells. 
+    int tileS = TPB + (2 * RAD) * sizeof(float);
     float *u_old;
     // Host memory allocating 
     u_old = (float*)malloc(sizeof(float) * ts);
