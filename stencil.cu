@@ -78,8 +78,9 @@ int main()
     cudaMalloc(&d_u_new, sizeof(float) * ts);
     cudaMemcpy(d_u_old, u_old, sizeof(float) * ts, cudaMemcpyHostToDevice);
 
-    stencil_naive<<<K, TPB>>>(d_u_new, d_u_old, ts, 0.25);
-    // Step 2: stencil_shared<<<K, TPB, tileS>>>(d_u_new, d_u_old, ts, 0.25);
+    // Step 1: stencil_naive<<<K, TPB>>>(d_u_new, d_u_old, ts, 0.25);
+    
+    stencil_shared<<<K, TPB, tileS>>>(d_u_new, d_u_old, ts, 0.25);
     cudaMemcpy(u_old, d_u_new, sizeof(float) * ts, cudaMemcpyDeviceToHost);
 
     for (int i = 0; i < ts; i++)
