@@ -98,6 +98,8 @@ int main()
     // Step 1: stencil_naive<<<K, TPB>>>(d_u_new, d_u_old, ts, 0.25);
     
     stencil_shared<<<K, TPB, tileS>>>(d_u_new, d_u_old, ts, 0.25);
+    cudaError_t e = cudaDeviceSynchronize();
+    if (e) { printf("kernel: %s\n", cudaGetErrorString(e)); fflush(stdout); }
     cudaMemcpy(u_old, d_u_new, sizeof(float) * ts, cudaMemcpyDeviceToHost);
 
     for (int i = 0; i < ts; i++)
