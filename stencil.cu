@@ -45,10 +45,17 @@ __global__ void stencil_shared(float* u_new, float* u_old,
     // Step 1: load interior of tile into shared memory
     tile[s_idx] = u_old[i]; 
     // Step 2: load halo cells (who is responsible for this?)
-    
+    if (threadIdx.x < RAD)
+    {
+        tile[s_idx - RAD] = u_old[i - RAD]; 
+        tile[s_idx + blockDim.x] = u_old[i + blockDim.x];
+    }
+    __syncthreads();
+
     // Step 3: __syncthreads()
     
     // Step 4: compute stencil using tile[], not u_old[]
+    u_new[i] = tile[s_idx] + r * (tile[s_idx - 1] - 2.0f * tile[s_idx] + tile[s_idx + 1]); 
 }
 
 int main() 
@@ -71,7 +78,7 @@ int main()
     cudaMalloc(&d_u_new, sizeof(float) * ts);
     cudaMemcpy(d_u_old, u_old, sizeof(float) * ts, cudaMemcpyHostToDevice);
 
-    stencil_naive<<<32, 512>>>(d_u_new, d_u_old, ts, 0.25);
+    stencil_shared<<<32, 512, tileS>>>(d_u_new, d_u_old, ts, 0.25);
 
     // int sByte = (512 + 2) * sizeof(float); 
     // stencil_shared<<<32, 512, sByte>>>();
