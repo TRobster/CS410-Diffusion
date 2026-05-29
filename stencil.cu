@@ -61,7 +61,7 @@ __global__ void stencil_shared(float* u_new, float* u_old,
 int main() 
 {
     // Dynamic shared memory size. For 2 ends, allocate needed amount of RAD for Halo Cells. 
-    int tileS = TPB + (2 * RAD) * sizeof(float);
+    int tileS = (TPB + (2 * RAD)) * sizeof(float);
     float *u_old;
     // Host memory allocating 
     u_old = (float*)malloc(sizeof(float) * ts);
