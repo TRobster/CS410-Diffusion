@@ -47,14 +47,31 @@ __global__ void stencil_shared(float* u_new, float* u_old,
     // Step 2: load halo cells (who is responsible for this?)
     if (threadIdx.x < RAD)
     {
-        tile[s_idx - RAD] = u_old[i - RAD]; 
-        tile[s_idx + blockDim.x] = u_old[i + blockDim.x];
+         // Left halo
+        if (i >= RAD) 
+        {
+            tile[s_idx - RAD] = u_old[i - RAD]; // Safe read
+        } 
+        else 
+        {
+            tile[s_idx - RAD] = 0.0f;           // Boundary condition injected safely
+        }
+        // Right halo
+        if (i + blockDim.x < N) 
+        {
+            tile[s_idx + blockDim.x] = u_old[i + blockDim.x]; // Safe read
+        } 
+        else 
+        {
+            tile[s_idx + blockDim.x] = 0.0f;                  // Boundary condition injected safely
+        }
     }
     __syncthreads();
 
     // Step 3: __syncthreads()
     
     // Step 4: compute stencil using tile[], not u_old[]
+    if (i < N)
     u_new[i] = tile[s_idx] + r * (tile[s_idx - 1] - 2.0f * tile[s_idx] + tile[s_idx + 1]); 
 }
 
