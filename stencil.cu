@@ -45,7 +45,6 @@ __global__ void stencil_shared(float* u_new, float* u_old,
     // Step 1: load interior of tile into shared memory
     if (i < N)
     {
-
         tile[s_idx] = u_old[i]; 
     }
     else
@@ -72,7 +71,7 @@ __global__ void stencil_shared(float* u_new, float* u_old,
         } 
         else 
         {
-            tile[s_idx + blockDim.x] = u_old[N-1];  // Boundary condition injected safely
+            tile[s_idx + blockDim.x] = tile[blockDim.x]; //u_old[N-1];  // Boundary condition injected safely
         }
     }
     __syncthreads();
