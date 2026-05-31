@@ -43,7 +43,16 @@ __global__ void stencil_shared(float* u_new, float* u_old,
     int s_idx = threadIdx.x + RAD;  // local index with offset for halo
     
     // Step 1: load interior of tile into shared memory
-    tile[s_idx] = u_old[i]; 
+    if (i < N)
+    {
+
+        tile[s_idx] = u_old[i]; 
+    }
+    else
+    {
+        // If a thread lies on i >= N it has no meaningful information to write
+        tile[s_idx] = 0.0f;
+    }
     // Step 2: load halo cells (who is responsible for this?)
     if (threadIdx.x < RAD)
     {
@@ -54,7 +63,7 @@ __global__ void stencil_shared(float* u_new, float* u_old,
         } 
         else 
         {
-            tile[s_idx - RAD] = 0.0f;           // Boundary condition injected safely
+            tile[s_idx - RAD] = tile[s_idx];  // Boundary condition injected safely
         }
         // Right halo
         if (i + blockDim.x < N) 
@@ -63,7 +72,7 @@ __global__ void stencil_shared(float* u_new, float* u_old,
         } 
         else 
         {
-            tile[s_idx + blockDim.x] = 0.0f;                  // Boundary condition injected safely
+            tile[s_idx + blockDim.x] = u_old[N-1];  // Boundary condition injected safely
         }
     }
     __syncthreads();
@@ -72,7 +81,9 @@ __global__ void stencil_shared(float* u_new, float* u_old,
     
     // Step 4: compute stencil using tile[], not u_old[]
     if (i < N)
-    u_new[i] = tile[s_idx] + r * (tile[s_idx - 1] - 2.0f * tile[s_idx] + tile[s_idx + 1]); 
+    {
+        u_new[i] = tile[s_idx] + r * (tile[s_idx - 1] - 2.0f * tile[s_idx] + tile[s_idx + 1]); 
+    }
 }
 
 int main() 
@@ -98,8 +109,6 @@ int main()
     // Step 1: stencil_naive<<<K, TPB>>>(d_u_new, d_u_old, ts, 0.25);
     
     stencil_shared<<<K, TPB, tileS>>>(d_u_new, d_u_old, ts, 0.25);
-    cudaError_t e = cudaDeviceSynchronize();
-    if (e) { printf("kernel: %s\n", cudaGetErrorString(e)); fflush(stdout); }
     cudaMemcpy(u_old, d_u_new, sizeof(float) * ts, cudaMemcpyDeviceToHost);
 
     for (int i = 0; i < ts; i++)
