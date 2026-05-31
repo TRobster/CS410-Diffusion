@@ -71,7 +71,7 @@ __global__ void stencil_shared(float* u_new, float* u_old,
         } 
         else 
         {
-            tile[s_idx + blockDim.x] = tile[blockDim.x]; //u_old[N-1];  // Boundary condition injected safely
+            tile[s_idx + blockDim.x] = u_old[N-1];  // Boundary condition injected safely
         }
     }
     __syncthreads();
@@ -107,7 +107,12 @@ int main()
 
     // Step 1: stencil_naive<<<K, TPB>>>(d_u_new, d_u_old, ts, 0.25);
     
-    stencil_shared<<<K, TPB, tileS>>>(d_u_new, d_u_old, ts, 0.25);
+    stencil_shared<<<K, TPB, tileS>>>(d_u_new, d_u_old, ts, 0.25f);
+    cudaError_t err = cudaGetLastError();        // catches launch errors
+    if (err) printf("launch: %s\n", cudaGetErrorString(err));
+    err = cudaDeviceSynchronize();               // catches in-kernel errors
+    if (err) printf("kernel: %s\n", cudaGetErrorString(err));
+    fflush(stdout);        
     cudaMemcpy(u_old, d_u_new, sizeof(float) * ts, cudaMemcpyDeviceToHost);
 
     for (int i = 0; i < ts; i++)
