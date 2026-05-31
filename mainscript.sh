@@ -15,6 +15,6 @@ module load gcc
 module load cuda/13.0
 
 # Compile the .cu file with nvcc
-nvcc -O2 -o my_program /projects/smearlab/trevorro/gputesting/CS410-Diffusion/stencil.cu
-# Run the compiled binary
-./my_program
+nvcc -O2 -o my_program /projects/smearlab/trevorro/gputesting/CS410-Diffusion/stencil.cu && ./my_program
+echo "exit: $?"
+
