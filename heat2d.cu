@@ -156,6 +156,7 @@ int main(void)
     // Optional warm-up: the very first launch pays one-time costs (context setup,
     // module load). Running one throwaway step keeps that out of the measurement.
     heatStep<<<grid, block>>>(d_curr, d_next, width, height, kappa);
+    cudaDeviceSynchronize();
     // --- Time stepping ---
     cudaEventRecord(start);
     for (int step = 0; step < numSteps; ++step) {
