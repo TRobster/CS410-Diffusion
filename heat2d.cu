@@ -96,6 +96,32 @@ static void makeTestImage(float* img, int width, int height)
         img[p[0] * width + p[1]] = 255.0f;
 }
 
+
+// Read a binary PGM (P5) into a freshly malloc'd float array.
+// Sets *width and *height from the file header. Minimal parser: assumes "P5",
+// maxval 255, no comment lines. (Matches what your writePGM and ImageMagick emit.)
+static float* readPGM(const char* filename, int* width, int* height)
+{
+    FILE* f = fopen(filename, "rb");
+    if (!f) { fprintf(stderr, "could not open %s\n", filename); exit(EXIT_FAILURE); }
+
+    char magic[3] = {0};
+    int maxval = 0;
+    if (fscanf(f, "%2s %d %d %d", magic, width, height, &maxval) != 4) {
+        fprintf(stderr, "bad PGM header in %s\n", filename); exit(EXIT_FAILURE);
+    }
+    if (magic[0] != 'P' || magic[1] != '5') {
+        fprintf(stderr, "%s is not a binary (P5) PGM\n", filename); exit(EXIT_FAILURE);
+    }
+    fgetc(f);   // consume the single whitespace byte between header and pixel data
+
+    int n = (*width) * (*height);
+    float* img = (float*)malloc(n * sizeof(float));
+    for (int i = 0; i < n; ++i)
+        img[i] = (float)fgetc(f);   // bytes 0..255 -> float, your existing value range
+    fclose(f);
+    return img;
+}
 // ---------------------------------------------------------------------------
 // Write a grayscale image as a binary PGM (P5) file. Values are clamped to
 // [0, 255] and rounded to bytes.
@@ -118,24 +144,24 @@ static void writePGM(const char* filename, const float* img, int width, int heig
     fclose(f);
 }
 
+
+
 int main(void)
 {
 
 
     cudaDeviceSynchronize();
-    const int   width    = 512;
-    const int   height   = 512;
     const float kappa    = 0.10f;   // diffusion coefficient; must be <= 0.25 for stability
     const int   numSteps = 200;     // more steps = more blur (sigma grows ~ sqrt(steps))
-
+    int width, int height; 
     const size_t numPixels = (size_t)width * height;
     const size_t numBytes  = numPixels * sizeof(float);
 
     // --- Host image ---
-    float* h_img = (float*)malloc(numBytes);
+    float* h_img  = readPGM("baboon.pgm", &width, &height);
     if (!h_img) { fprintf(stderr, "host malloc failed\n"); return EXIT_FAILURE; }
     makeTestImage(h_img, width, height);
-    writePGM("baboon.pgm", h_img, width, height);
+    writePGM("before.pgm", h_img, width, height);
 
     // --- Device buffers (ping-pong: read one, write the other, then swap) ---
     float *d_curr = nullptr, *d_next = nullptr;
