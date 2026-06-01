@@ -85,6 +85,53 @@ __global__ void stencil_shared(float* u_new, float* u_old,
     }
 }
 
+// One forward-Euler timestep of the 2D heat equation on a grayscale image.
+//   u_in   : current image, read-only this step
+//   u_out  : next image, written this step
+//   kappa  : alpha * dt / h^2  (the lumped diffusion coefficient)
+__global__ void heatStep(const float* u_in, float* u_out,
+                         int width, int height, float kappa)
+{
+   // Map this thread to one pixel. col = x, row = y.
+   // Consecutive threads in a warp vary in col -> coalesced reads of u_in.
+   int col = blockIdx.x * blockDim.x + threadIdx.x;
+   int row = blockIdx.y * blockDim.y + threadIdx.y;
+
+   if (col >= width || row >= height) return;   // threads off the image do nothing
+
+   // Clamp neighbor coordinates to the edge (Neumann / zero-flux boundary):
+   // a missing neighbor is treated as a copy of the edge pixel, so no heat leaks out.
+   int left  = max(col - 1, 0);
+   int right = min(col + 1, width  - 1);
+   int up    = max(row - 1, 0);
+   int down  = min(row + 1, height - 1);
+
+   // Flatten (row, col) -> 1D index, row-major:  idx = row * width + col.
+   float center  = u_in[row  * width + col];
+   float n_left  = u_in[row  * width + left];
+   float n_right = u_in[row  * width + right];
+   float n_up    = u_in[up   * width + col];
+   float n_down  = u_in[down * width + col];
+
+   // Discrete 5-point Laplacian: how much "hotter" the neighbors are than the center.
+   float laplacian = n_left + n_right + n_up + n_down - 4.0f * center;
+
+   // Forward Euler: nudge each pixel a little toward the average of its neighbors.
+   u_out[row * width + col] = center + kappa * laplacian;
+}
+/*
+void time_march(float* d_u0, float* d_u1, 
+                int N, float r, int n_steps) {
+    float* src = d_u0;
+    float* dst = d_u1;
+    
+    for (int step = 0; step < n_steps; step++) {
+        // launch kernel with src -> dst
+        stencil_shared<<<K, TPB, (TPB + (2 * RAD)) * sizeof(float)>>> 
+        // swap src and dst
+    }
+}
+*/
 int main() 
 {
     // Dynamic shared memory size. For 2 ends, allocate needed amount of RAD for Halo Cells. 
