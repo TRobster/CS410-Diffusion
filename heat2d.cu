@@ -135,7 +135,7 @@ int main(void)
     float* h_img = (float*)malloc(numBytes);
     if (!h_img) { fprintf(stderr, "host malloc failed\n"); return EXIT_FAILURE; }
     makeTestImage(h_img, width, height);
-    writePGM("before.pgm", h_img, width, height);
+    writePGM("baboon.pgm", h_img, width, height);
 
     // --- Device buffers (ping-pong: read one, write the other, then swap) ---
     float *d_curr = nullptr, *d_next = nullptr;
