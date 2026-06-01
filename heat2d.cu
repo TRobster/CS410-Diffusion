@@ -125,7 +125,7 @@ int main(void)
     cudaDeviceSynchronize();
     const int   width    = 256;
     const int   height   = 256;
-    const float kappa    = 0.25f;   // diffusion coefficient; must be <= 0.25 for stability
+    const float kappa    = 0.10f;   // diffusion coefficient; must be <= 0.25 for stability
     const int   numSteps = 200;     // more steps = more blur (sigma grows ~ sqrt(steps))
 
     const size_t numPixels = (size_t)width * height;
