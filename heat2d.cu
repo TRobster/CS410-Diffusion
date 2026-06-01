@@ -151,12 +151,13 @@ int main(void)
 
     const float kappa    = 0.10f;   // diffusion coefficient; must be <= 0.25 for stability
     const int   numSteps = 200;     // more steps = more blur (sigma grows ~ sqrt(steps))
-    int width, height; 
-    const size_t numPixels = (size_t)width * height;
-    const size_t numBytes  = numPixels * sizeof(float);
 
     // --- Host image ---
+    int width, height; 
     float* h_img  = readPGM("baboon.pgm", &width, &height);
+    const size_t numPixels = (size_t)width * height;
+    const size_t numBytes  = numPixels * sizeof(float);
+    
     if (!h_img) { fprintf(stderr, "host malloc failed\n"); return EXIT_FAILURE; }
     makeTestImage(h_img, width, height);
     writePGM("before.pgm", h_img, width, height);
