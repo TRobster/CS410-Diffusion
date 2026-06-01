@@ -148,10 +148,10 @@ static void writePGM(const char* filename, const float* img, int width, int heig
 
 int main(void)
 {
-    
+
     const float kappa    = 0.10f;   // diffusion coefficient; must be <= 0.25 for stability
     const int   numSteps = 200;     // more steps = more blur (sigma grows ~ sqrt(steps))
-    int width, int height; 
+    int width, height; 
     const size_t numPixels = (size_t)width * height;
     const size_t numBytes  = numPixels * sizeof(float);
 
