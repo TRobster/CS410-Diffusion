@@ -160,7 +160,7 @@ int main(void)
     
     if (!h_img) { fprintf(stderr, "host malloc failed\n"); return EXIT_FAILURE; }
     writePGM("before.pgm", h_img, width, height);
-
+    makeTestImage(h_img, width, height);
     // --- Device buffers (ping-pong: read one, write the other, then swap) ---
     float *d_curr = nullptr, *d_next = nullptr;
     CHECK(cudaMalloc(&d_curr, numBytes));
