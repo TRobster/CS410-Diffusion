@@ -120,9 +120,12 @@ static void writePGM(const char* filename, const float* img, int width, int heig
 
 int main(void)
 {
+
+
+    cudaDeviceSynchronize();
     const int   width    = 256;
     const int   height   = 256;
-    const float kappa    = 0.20f;   // diffusion coefficient; must be <= 0.25 for stability
+    const float kappa    = 0.25f;   // diffusion coefficient; must be <= 0.25 for stability
     const int   numSteps = 200;     // more steps = more blur (sigma grows ~ sqrt(steps))
 
     const size_t numPixels = (size_t)width * height;
@@ -140,12 +143,21 @@ int main(void)
     CHECK(cudaMalloc(&d_next, numBytes));
     CHECK(cudaMemcpy(d_curr, h_img, numBytes, cudaMemcpyHostToDevice));
 
-    // --- Launch configuration: one thread per pixel ---
+    // Launch configuration: one thread per pixel
     dim3 block(16, 16);
     dim3 grid((width  + block.x - 1) / block.x,
               (height + block.y - 1) / block.y);
 
+    // Timing setup before step
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);
+    cudaEventCreate(&stop);
+
+    // Optional warm-up: the very first launch pays one-time costs (context setup,
+    // module load). Running one throwaway step keeps that out of the measurement.
+    heatStep<<<grid, block>>>(d_curr, d_next, width, height, kappa);
     // --- Time stepping ---
+    cudaEventRecord(start);
     for (int step = 0; step < numSteps; ++step) {
         heatStep<<<grid, block>>>(d_curr, d_next, width, height, kappa);
         CHECK(cudaGetLastError());     // catch bad launch configs etc.
@@ -153,6 +165,13 @@ int main(void)
     }
     CHECK(cudaDeviceSynchronize());    // wait for the GPU to finish all steps
 
+    cudaEventSynchronize(stop);          // wait until the stop event truly completes
+    float ms = 0.0f;
+    cudaEventElapsedTime(&ms, start, stop);
+    printf("%d steps: %.3f ms total, %.4f ms/step\n", numSteps, ms, ms / numSteps);
+
+    cudaEventDestroy(start);
+    cudaEventDestroy(stop);
     // After the loop d_curr points at the most recently written image.
     CHECK(cudaMemcpy(h_img, d_curr, numBytes, cudaMemcpyDeviceToHost));
     writePGM("after.pgm", h_img, width, height);
