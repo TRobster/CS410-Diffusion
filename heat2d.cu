@@ -191,6 +191,12 @@ int main(void)
         std::swap(d_curr, d_next);     // the freshly written buffer becomes current
     }
     CHECK(cudaDeviceSynchronize());    // wait for the GPU to finish all steps
+    cudaError_t err = cudaGetLastError();        // catches launch errors
+    if (err) printf("launch: %s\n", cudaGetErrorString(err));
+    err = cudaDeviceSynchronize();               // catches in-kernel errors
+    if (err) printf("kernel: %s\n", cudaGetErrorString(err));
+    fflush(stdout);        
+
     cudaEventRecord(stop);       
     cudaEventSynchronize(stop);          // wait until the stop event truly completes
     float ms = 0.0f;
