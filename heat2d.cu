@@ -159,7 +159,6 @@ int main(void)
     const size_t numBytes  = numPixels * sizeof(float);
     
     if (!h_img) { fprintf(stderr, "host malloc failed\n"); return EXIT_FAILURE; }
-    makeTestImage(h_img, width, height);
     writePGM("before.pgm", h_img, width, height);
 
     // --- Device buffers (ping-pong: read one, write the other, then swap) ---
