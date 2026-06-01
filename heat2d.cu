@@ -165,7 +165,7 @@ int main(void)
         std::swap(d_curr, d_next);     // the freshly written buffer becomes current
     }
     CHECK(cudaDeviceSynchronize());    // wait for the GPU to finish all steps
-
+    cudaEventRecord(stop);       
     cudaEventSynchronize(stop);          // wait until the stop event truly completes
     float ms = 0.0f;
     cudaEventElapsedTime(&ms, start, stop);
