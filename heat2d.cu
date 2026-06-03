@@ -24,10 +24,10 @@
 #include <utility>          // std::swap
 #include <cuda_runtime.h>
 
-// ---------------------------------------------------------------------------
+//
 // Tiny error-check macro. Wrap every CUDA call so failures point at a line
 // number instead of silently producing garbage.
-// ---------------------------------------------------------------------------
+// 
 #define CHECK(call)                                                          \
     do {                                                                     \
         cudaError_t _e = (call);                                             \
@@ -38,12 +38,12 @@
         }                                                                    \
     } while (0)
 
-// ---------------------------------------------------------------------------
+// 
 // One forward-Euler timestep of the 2D heat equation on a grayscale image.
 //   u_in   : current image, read-only this step
 //   u_out  : next image, written this step
 //   kappa  : alpha * dt / h^2  (the lumped diffusion coefficient)
-// ---------------------------------------------------------------------------
+// 
 __global__ void heatStep(const float* u_in, float* u_out,
                           int width, int height, float kappa)
 {
@@ -77,11 +77,11 @@ __global__ void heatStep(const float* u_in, float* u_out,
     
 }
 
-// ---------------------------------------------------------------------------
+//
 // Build a synthetic test image: black background, a bright central square,
 // and a few isolated bright points. The square's sharp edges visibly soften
 // and the points spread into blobs as diffusion runs.
-// ---------------------------------------------------------------------------
+// 
 static void makeTestImage(float* img, int width, int height)
 {
     for (int i = 0; i < width * height; ++i) img[i] = 0.0f;   // black
@@ -151,7 +151,7 @@ int main(void)
 {
 
     const float kappa    = 0.20f;   // diffusion coefficient; must be <= 0.25 for stability
-    const int   numSteps = 200;     // more steps = more blur (sigma grows ~ sqrt(steps))
+    const int   numSteps = 100;     // more steps = more blur (sigma grows ~ sqrt(steps))
 
     // --- Host image ---
     int width = 512, height = 512;
