@@ -151,7 +151,7 @@ int main(void)
 {
 
     const float kappa    = 0.20f;   // diffusion coefficient; must be <= 0.25 for stability
-    const int   numSteps = 100;     // more steps = more blur (sigma grows ~ sqrt(steps))
+    const int   numSteps = 50;     // more steps = more blur (sigma grows ~ sqrt(steps))
 
     // --- Host image ---
     int width = 512, height = 512;
