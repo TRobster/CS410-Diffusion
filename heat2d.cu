@@ -92,7 +92,7 @@ static void makeTestImage(float* img, int width, int height)
             img[row * width + col] = 255.0f;
 
     // A few single-pixel bright points: {row, col}.
-    const int pts[][2] = { {32, 32}, {40, 220}, {220, 40}, {210, 210} };
+    const int pts[][2] = { {64, 64}, {64, 448}, {448, 64}, {448, 448} };
     for (const auto& p : pts)
         img[p[0] * width + p[1]] = 255.0f;
 }
@@ -154,14 +154,14 @@ int main(void)
     const int   numSteps = 50;     // more steps = more blur (sigma grows ~ sqrt(steps))
 
     // --- Host image ---
-    int width, height; 
+    int width = 512, height = 512;
     float* h_img; 
+    makeTestImage(h_img, width, height);
     const size_t numPixels = (size_t)width * height;
     const size_t numBytes  = numPixels * sizeof(float);
     
     if (!h_img) { fprintf(stderr, "host malloc failed\n"); return EXIT_FAILURE; }
     writePGM("before.pgm", h_img, width, height);
-    makeTestImage(h_img, width, height);
     // --- Device buffers (ping-pong: read one, write the other, then swap) ---
     float *d_curr = nullptr, *d_next = nullptr;
     CHECK(cudaMalloc(&d_curr, numBytes));
