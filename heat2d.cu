@@ -151,16 +151,16 @@ int main(void)
 {
 
     const float kappa    = 0.20f;   // diffusion coefficient; must be <= 0.25 for stability
-    const int   numSteps = 50;     // more steps = more blur (sigma grows ~ sqrt(steps))
+    const int   numSteps = 100;     // more steps = more blur (sigma grows ~ sqrt(steps))
 
     // --- Host image ---
     int width = 512, height = 512;
-    float* h_img; 
-    makeTestImage(h_img, width, height);
+    
     const size_t numPixels = (size_t)width * height;
     const size_t numBytes  = numPixels * sizeof(float);
-    
+    float* h_img = (float*)malloc(numBytes);  
     if (!h_img) { fprintf(stderr, "host malloc failed\n"); return EXIT_FAILURE; }
+    makeTestImage(h_img, width, height);
     writePGM("before.pgm", h_img, width, height);
     // --- Device buffers (ping-pong: read one, write the other, then swap) ---
     float *d_curr = nullptr, *d_next = nullptr;
@@ -189,6 +189,7 @@ int main(void)
         CHECK(cudaGetLastError());     // catch bad launch configs etc.
         std::swap(d_curr, d_next);     // the freshly written buffer becomes current
     }
+    cudaEventRecord(stop);
     CHECK(cudaDeviceSynchronize());    // wait for the GPU to finish all steps
     cudaError_t err = cudaGetLastError();        // catches launch errors
     if (err) printf("launch: %s\n", cudaGetErrorString(err));
@@ -196,7 +197,6 @@ int main(void)
     if (err) printf("kernel: %s\n", cudaGetErrorString(err));
     fflush(stdout);        
 
-    cudaEventRecord(stop);       
     cudaEventSynchronize(stop);          // wait until the stop event truly completes
     float ms = 0.0f;
     cudaEventElapsedTime(&ms, start, stop);
