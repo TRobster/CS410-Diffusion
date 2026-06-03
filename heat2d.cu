@@ -74,6 +74,7 @@ __global__ void heatStep(const float* u_in, float* u_out,
 
     // Forward Euler: step a little toward the neighborhood average.
     u_out[row * width + col] = center + kappa * laplacian;
+    
 }
 
 // ---------------------------------------------------------------------------
@@ -149,12 +150,12 @@ static void writePGM(const char* filename, const float* img, int width, int heig
 int main(void)
 {
 
-    const float kappa    = 0.10f;   // diffusion coefficient; must be <= 0.25 for stability
-    const int   numSteps = 200;     // more steps = more blur (sigma grows ~ sqrt(steps))
+    const float kappa    = 0.20f;   // diffusion coefficient; must be <= 0.25 for stability
+    const int   numSteps = 50;     // more steps = more blur (sigma grows ~ sqrt(steps))
 
     // --- Host image ---
     int width, height; 
-    float* h_img  = readPGM("baboon.pgm", &width, &height);
+    float* h_img; 
     const size_t numPixels = (size_t)width * height;
     const size_t numBytes  = numPixels * sizeof(float);
     
