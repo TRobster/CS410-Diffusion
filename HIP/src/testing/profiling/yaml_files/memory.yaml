@@ -1,0 +1,68 @@
+jobs:
+  # Pass 1: High-level bandwidth and memory stall indicator.
+  # FETCH_SIZE internally expands to TCC_EA0_RDREQ_sum/TCC_BUBBLE_sum,
+  # so it must be isolated from other TCC counter passes.
+  - pmc: ["FETCH_SIZE", "MemUnitStalled"]
+    kernel_include_regex: ".*kernel*"
+    truncate_kernels: true
+    output_format: ["csv"]
+    output_file: "out"
+
+  # Pass 2: L2 (TCC) -> HBM read bandwidth and average read latency.
+  # Avg read latency (cycles) = TCC_EA0_RDREQ_LEVEL_sum / TCC_EA0_RDREQ_sum
+  - pmc: ["TCC_EA0_RDREQ_sum", "TCC_EA0_RDREQ_LEVEL_sum"]
+    kernel_include_regex: ".*kernel*"
+    truncate_kernels: true
+    output_format: ["csv"]
+    output_file: "out"
+
+  # Pass 3: L2 (TCC) -> HBM write bandwidth and average write latency.
+  # Avg write latency (cycles) = TCC_EA0_WRREQ_LEVEL_sum / TCC_EA0_WRREQ_sum
+  - pmc: ["TCC_EA0_WRREQ_sum", "TCC_EA0_WRREQ_LEVEL_sum"]
+    kernel_include_regex: ".*kernel*"
+    truncate_kernels: true
+    output_format: ["csv"]
+    output_file: "out"
+
+  # Pass 4: DRAM-specific traffic (requests that missed L2 and went to HBM).
+  # High values relative to pass 2/3 totals indicate low L2 reuse.
+  - pmc: ["TCC_EA0_RDREQ_DRAM_sum", "TCC_EA0_WRREQ_DRAM_sum"]
+    kernel_include_regex: ".*kernel*"
+    truncate_kernels: true
+    output_format: ["csv"]
+    output_file: "out"
+
+  # Pass 5: L2 cache hit/miss counts.
+  # Hit rate = TCC_HIT_sum / (TCC_HIT_sum + TCC_MISS_sum)
+  - pmc: ["TCC_HIT_sum", "TCC_MISS_sum"]
+    kernel_include_regex: ".*kernel*"
+    truncate_kernels: true
+    output_format: ["csv"]
+    output_file: "out"
+
+  # Pass 6: Shader-side VMEM latency.
+  # Avg VMEM latency (cycles) = SQ_INST_LEVEL_VMEM / SQ_INSTS_VMEM_RD
+  - pmc: ["SQ_INSTS_VMEM_RD", "SQ_INST_LEVEL_VMEM"]
+    kernel_include_regex: ".*kernel*"
+    truncate_kernels: true
+    output_format: ["csv"]
+    output_file: "out"
+
+  # Pass 7: L1 (TCP) hit/miss.
+  # L1 hits = TCP_TOTAL_READ_sum - TCP_TCC_READ_REQ_sum
+  # L1 hit rate = (TCP_TOTAL_READ_sum - TCP_TCC_READ_REQ_sum) / TCP_TOTAL_READ_sum
+  - pmc: ["TCP_TOTAL_READ_sum", "TCP_TCC_READ_REQ_sum"]
+    kernel_include_regex: ".*kernel*"
+    truncate_kernels: true
+    output_format: ["csv"]
+    output_file: "out"
+
+  # Pass 8: LDS vs global read instruction counts.
+  # LDS:VMEM ratio = SQ_INSTS_LDS / SQ_INSTS_VMEM_RD
+  # SQ_INSTS_LDS includes both LDS reads and writes; for a stencil kernel
+  # reads dominate (~5 reads per thread vs ~1 write when loading the tile).
+  - pmc: ["SQ_INSTS_LDS", "SQ_INSTS_VMEM_RD"]
+    kernel_include_regex: ".*kernel*"
+    truncate_kernels: true
+    output_format: ["csv"]
+    output_file: "out"

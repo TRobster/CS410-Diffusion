@@ -1,0 +1,19 @@
+If you want to compile the implementation binary for a given architecture simply just run
+Make <architecture code name>. If you are unsure what your architecture code name is run the
+command rocminfo | grep -E "(Agent |Name: |Marketing Name)". 
+
+List of different architecture codes:
+-------------RDNA (Gaming & Workstation)-------------
+gfx1100 / gfx1101 – RDNA 3 / Navi 31 (e.g., RX 7900 XTX)
+gfx1102 – RDNA 3 / Navi 32, Navi 33
+gfx1030 – RDNA 2 / Navi 21, Navi 22 (e.g., RX 6800 XT)
+gfx1031 – RDNA 2 / Navi 22 (e.g., RX 6700 XT)
+gfx1010 / gfx1012 – RDNA 1 / Navi 10, Navi 14
+-------------CDNA (Data Center & AI Accelerators)-------------
+gfx942 – CDNA 3 / Aquavanjaram (e.g., Instinct MI300 series)
+gfx90a – CDNA 2 / Aldebaran (e.g., Instinct MI200 series)
+gfx908 – CDNA 1 / ArcturusLegacy GCNgfx900 – Vega / Vega 10 (e.g., Radeon VII)
+gfx803 – Polaris / Fiji, Polaris 10/11
+-------------Legacy GCN-------------
+gfx900 – Vega / Vega 10 (e.g., Radeon VII)
+gfx803 – Polaris / Fiji, Polaris 10/11

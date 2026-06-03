@@ -1,0 +1,34 @@
+Kernel configuration files should be formatted as such
+
+version: <string> at the top of the files
+There are three separate versions (stride, dimension, adaptive). 
+stride: Allows you to tune the kernel's stride
+dimension: Allows you to tune the kernel's block size and grid size
+adaptive: Allows you pass in a list of estimated memory access percentages 
+(smem, l1 cache, l2 cache, main memory)
+
+Example configuration file for stride verion:
+Version: stride
+stride: <int>
+
+Example configuration file for dimension version:
+Version: dimension
+blocksize: <int>
+gridsize: <int>
+
+Example configuration file for adaptive version:
+Version: dimension
+smem: <float>
+l1: <float>
+l2: <float>
+main: <float>
+*Note: Make sure percentages add up to 1 (approx)
+
+
+
+
+
+
+
+
+

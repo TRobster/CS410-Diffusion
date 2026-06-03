@@ -1,0 +1,2 @@
+version: default
+stride: 8

@@ -1,0 +1,13 @@
+.vscode/ 
+
+/ref/
+
+/autotuner/
+
+pgm_files/
+
+obj/
+
+*.a
+
+heat_test

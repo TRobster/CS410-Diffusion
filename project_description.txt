@@ -1,0 +1,4 @@
+The 2D heat equation ut = κ(uxx + uyy) can be applied to image processing: treat pixel 
+intensities as the initial condition, and “diffuse” them. Running the heat equation for a 
+short time blurs the image; running longer smooths it completely. Load a grayscale image as 
+a 2D array, treat it as the initial condition, and evolve the heat equation on GPU.
