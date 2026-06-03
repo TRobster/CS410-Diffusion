@@ -184,7 +184,8 @@ int main(void)
     cudaDeviceSynchronize();
     // --- Time stepping ---
     cudaEventRecord(start);
-    for (int step = 0; step < numSteps; ++step) {
+    for (int step = 0; step < numSteps; ++step) 
+    {
         heatStep<<<grid, block>>>(d_curr, d_next, width, height, kappa);
         CHECK(cudaGetLastError());     // catch bad launch configs etc.
         std::swap(d_curr, d_next);     // the freshly written buffer becomes current
