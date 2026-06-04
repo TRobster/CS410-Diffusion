@@ -1,18 +1,17 @@
-#ifndef TIMING_H
-#define TIMING_H
+#ifndef KERNEL_TIMING_H
+#define KERNEL_TIMING_H
 
 #include <hip/hip_runtime.h>
-#include <utility>
+#include "kernel_utils.h"
 #include <iostream>
 #include <algorithm>
-#include <numeric> 
+#include <numeric>
 #include <vector>
 #include <string>
 
-
 void clean_timing_data(
     std::vector<float> times,
-    int         sd_tolerance
+    int                sd_tolerance
 );
 
 void time_kernel(
@@ -22,7 +21,10 @@ void time_kernel(
     int                   cols,
     int          kernel_stride,
     int             iterations,
-    std::string kernel_version
+    std::string kernel_version,
+    int              block_size = 256,
+    int               grid_size = -1,
+    access_distribution  reads = {}
 );
 
 #endif

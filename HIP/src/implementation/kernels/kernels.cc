@@ -77,7 +77,7 @@ __global__ void heat_equation_neumann_kernel(
 }
 
 //
-void heat_equation_tunable_stride(
+void kernel_wrapper_tunable_stride(
     const float* d_u,
     float*       d_u_new,
     int          rows,
@@ -106,7 +106,7 @@ void heat_equation_tunable_stride(
 }
 
 //
-void heat_equation_tunable_dimensions(
+void kernel_wrapper_tunable_dimensions(
     const float* d_u,
     float*       d_u_new,
     int          rows,
@@ -114,7 +114,7 @@ void heat_equation_tunable_dimensions(
     float        alpha,
     int          block_size,
     int          grid_size,
-    int          deviceId = -1
+    int           deviceId
 )
 {
     if (deviceId < 0) deviceId = select_device();
@@ -140,14 +140,14 @@ void heat_equation_tunable_dimensions(
 }
 
 //
-void heat_equation_adaptive(
+void kernel_wrapper_adaptive(
     const float*         d_u,
     float*           d_u_new,
     int                 rows,
     int                 cols,
     float               alpha,
     access_distribution reads, 
-    int         deviceId = -1
+    int              deviceId
 )
 {
     if (deviceId < 0) deviceId = select_device();

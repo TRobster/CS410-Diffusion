@@ -2,8 +2,9 @@
 #include <utility>
 #include <iostream>
 #include <algorithm>
-#include <numeric> 
+#include <numeric>
 #include <vector>
+#include <cmath>
 #include "kernel_utils.h"
 
 using namespace std;
@@ -190,7 +191,10 @@ int select_device() {
 //Determine dimensions of block based on the block size
 std::pair<int, int> determine_block_dimensions(int blocksize)
 {
-   return {0,0}; 
+    int y = (int)std::sqrt((double)blocksize);
+    while (y > 1 && blocksize % y != 0)
+        y--;
+    return {blocksize / y, y};
 }
 
 // Average of shared memory, global, and L1 latencies (in cycles)
@@ -202,8 +206,8 @@ int determine_avg_latency(access_distribution accesses) {
 
 // Average of shared memory, global, and L1 bandwidths (in GB/s)
 int determine_avg_bandwidth(access_distribution accesses) {
-    return accesses.smem * get_smem_bandwidth() + accesses.l1 * get_l1_bandwidth()
-    accesses.l2 * get_l1_bandwidth() + accesses.hbm * get_global_mem_bandwidth();
+    return accesses.smem * get_smem_bandwidth() + accesses.l1 * get_l1_bandwidth() 
+    + accesses.l2 * get_l1_bandwidth() + accesses.hbm * get_global_mem_bandwidth();
 }
 
 // Minimum wavefronts per CU needed to hide average memory latency (Little's Law)

@@ -2,7 +2,7 @@ HIPCC    := hipcc
 ARCH     ?=
 HIPFLAGS := -std=c++17 -O2 $(if $(ARCH),--offload-arch=$(ARCH),)
 
-INC     := ../../include
+INC     := ../../../include
 OBJ_DIR := obj
 LIB     := libheat.a
 

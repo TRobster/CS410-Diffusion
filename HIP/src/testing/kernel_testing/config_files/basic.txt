@@ -1,0 +1,2 @@
+version: stride
+stride: 1

@@ -17,12 +17,12 @@ blocksize: <int>
 gridsize: <int>
 
 Example configuration file for adaptive version:
-Version: dimension
+Version: adaptive
 smem: <float>
 l1: <float>
 l2: <float>
 main: <float>
-*Note: Make sure percentages add up to 1 (approx)
+*Note: Make sure decimals add up to 1 (approx)
 
 
 

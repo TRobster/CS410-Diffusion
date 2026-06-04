@@ -9,6 +9,7 @@ timesteps = [50, 100, 200]
 cuda_ms   = [0.208, NaN, NaN]   # your CUDA numbers (100 and 200 steps TBD)
 openmp_ms = [45.0, 90.5, 181.2]  # group member's OpenMP numbers
 hip_ms    = [4.1,  8.3,  16.9]   # group member's HIP numbers
+hip_ms_2    = [0.79, 1.26, 2.31] #Added by Kai
 
 # -----------------------------------------------------------------------
 # Plot

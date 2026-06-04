@@ -5,11 +5,11 @@
 #include <utility>
 #include <tuple>
 #include <functional>
-#include "timing.h"
-#include "correctness.h"
+#include "kernel_timing.h"
+#include "kernel_correctness.h"
 #include "kernels.h"
 #include "kernel_utils.h"
-#include "../../../data_pipeline/pgm_filereader.h"
+#include "../../../../data_pipeline/pgm_filereader.h"
 
 using namespace std;
 
@@ -17,6 +17,7 @@ int block_size_limit =        1024;
 int grid_size_limit =      3900000;
 int stride_limit =              25;
 int overflow_guard =    0x7FFFFFFF;
+float tol =                   0.01;
 
 struct kernel_config{
     string version =        "None";
@@ -27,55 +28,39 @@ struct kernel_config{
     bool       valid =       false;
 };
 
-bool validate_stride_config(const kernel_config& config)
+inline bool validate_stride_config(const kernel_config& config)
 {
-    if (config.stride == -1 || config.stride > 25) return false;
-    if (config.block_size != -1 || config.grid_size != -1 || config.reads)
-
+    return config.stride != -1 || config.stride <= stride_limit;
 }
 
-bool validate_dimension_congfig(const kernel_config& config)
+inline bool validate_dimension_config(const kernel_config& config, int problem_size)
 {
-    return false;
+    if (config.block_size < -1 || config.block_size == 0 || 
+    (config.block_size % 64 != 0 && config.block_size > 0)|| config.block_size > block_size_limit) return false;
+    if (config.grid_size < -1 || config.grid_size == 0 || config.grid_size > grid_size_limit) return false;
+    if(config.grid_size * config.block_size * stride_limit < problem_size) return false;
+    
+    return true;
 }
 
-bool validate_adaptive_congfig(const kernel_config& config)
+inline bool validate_adaptive_config(const kernel_config& config)
 {
-    return false;
+    const access_distribution* read_dist = &(config.reads);
+    if (read_dist->smem > 1.0f || read_dist->smem < 0.0f) return false;
+    if (read_dist->l1 > 1.0f || read_dist->l1 < 0.0f) return false;
+    if (read_dist->l2 > 1.0f || read_dist->l2 < 0.0f) return false;
+    if (read_dist->hbm > 1.0f || read_dist->hbm < 0.0f) return false;
+
+    float acc = read_dist->smem + read_dist->l1 + read_dist->l2 + read_dist->hbm;
+    return abs(acc - 1.0f) <= tol;
 }
 
 void validate_kernel_config(kernel_config& config, int problem_size)
 {
     if (config.version == "None") return;
-    if (config.block_size < -1 || config.block_size == 0 || 
-    (config.block_size % 64 != 0 && config.block_size > 0)|| config.block_size > block_size_limit) return;
-    if (config.grid_size < -1 || config.grid_size == 0 || config.grid_size > grid_size_limit) return;
-    if (config.stride < -1 || config.stride == 0 || config.stride > stride_limit) return;
-
-    int max_problem_size = 1, min_problem_size = 1;
-    if (config.block_size != -1){
-        max_problem_size *= config.block_size;
-        min_problem_size *= config.block_size;
-    }
-    else max_problem_size *= block_size_limit;
-    if (config.grid_size != -1){
-        max_problem_size *= config.grid_size;
-        min_problem_size *= config.grid_size;
-    }
-    else max_problem_size *= grid_size_limit;
-    if (config.stride != -1){
-        max_problem_size *= config.stride;
-        min_problem_size *= config.stride;
-    }
-    else max_problem_size *= stride_limit;
-
-    max_problem_size &= overflow_guard;
-    min_problem_size &= overflow_guard;
-
-    if (max_problem_size < problem_size) return;
-    if (min_problem_size > problem_size) return;
-
-    config.valid = true;
+    if (config.version == "stride") config.valid = validate_stride_config(config);
+    else if (config.version == "dimension") config.valid = validate_dimension_config(config, problem_size);
+    else if (config.version == "adaptive") config.valid = validate_stride_config(config);
 }
 
 kernel_config read_config_file(string config_file)
@@ -179,14 +164,17 @@ int main(int argc, char* argv[])
     }
 
     if (mode == "timing") {
-        time_kernel(u, alpha, rows, cols, stride, iters, config.version);
+        time_kernel(u, alpha, rows, cols, stride, iters, config.version,
+                    config.block_size, config.grid_size, config.reads);
     } else if (mode == "correctness") {
         vector<float> uniform_field = generate_u(rows, cols, {0.0f, 1.0f}, 1.0f);
         vector<float> u_new(rows * cols, 0.0f);
 
         bool pass = true;
-        pass &= test_kernel_uniform_field(uniform_field, u_new, rows, cols, alpha, config.version);
-        pass &= test_kernel_cpu(u, u_new, vector<float>(rows * cols, 0.0f), rows, cols, alpha, config.version);
+        pass &= test_kernel_uniform_field(uniform_field, u_new, rows, cols, alpha, config.version,
+                                          stride, config.block_size, config.grid_size, config.reads);
+        pass &= test_kernel_cpu(u, u_new, vector<float>(rows * cols, 0.0f), rows, cols, alpha, config.version,
+                                stride, config.block_size, config.grid_size, config.reads);
 
         return pass ? 0 : 1;
     } else {

@@ -1,25 +1,30 @@
-#include "correctness.h"
+#include "kernel_correctness.h"
 #include "kernels.h"
 #include "kernel_utils.h"
 #include <random>
 #include <cmath>
 
 std::vector<float> generate_u(
-    int                      rows,
-    int                      cols,
-    std::pair<float, float>  range,
-    float                    uniform_val
-) 
-{
-    std::vector<float> u(rows * cols);
-    if (uniform_val != 0.0f) {
-        std::fill(u.begin(), u.end(), uniform_val);
-    } else {
-        std::mt19937 rng(42);
-        std::uniform_real_distribution<float> dist(range.first, range.second);
-        for (auto& v : u) v = dist(rng);
-    }
-    return u;
+    int                     rows,
+    int                     cols,
+    std::pair<float, float> range,
+    float                   uniform_val
+) {
+    std::vector<float> img(rows * cols);
+    
+    for (int i = 0; i < rows * cols; ++i) img[i] = 0.0f;   // black
+
+    // Centered bright square.
+    for (int row = cols / 4; row < 3 * cols / 4; ++row)
+        for (int col = rows / 4; col < 3 * rows / 4; ++col)
+            img[row * rows + col] = 255.0f;
+
+    // A few single-pixel bright points: {row, col}.
+    const int pts[][2] = { {64, 64}, {64, 448}, {448, 64}, {448, 448} };
+    for (const auto& p : pts)
+        img[p[0] * rows + p[1]] = 255.0f;
+
+    return img;
 }
 
 std::vector<float> heat_equation_neumann_cpu(
@@ -45,17 +50,42 @@ std::vector<float> heat_equation_neumann_cpu(
     return u_new;
 }
 
+static void dispatch_kernel(
+    const float*        d_u,
+    float*              d_u_new,
+    int                 rows,
+    int                 cols,
+    float               alpha,
+    const std::string&  kernel_version,
+    int                 stride,
+    int                 block_size,
+    int                 grid_size,
+    access_distribution reads,
+    int                 deviceId
+) {
+    if (kernel_version == "stride") {
+        kernel_wrapper_tunable_stride(d_u, d_u_new, rows, cols, alpha, stride, deviceId);
+    } else if (kernel_version == "dimension") {
+        kernel_wrapper_tunable_dimensions(d_u, d_u_new, rows, cols, alpha, block_size, grid_size, deviceId);
+    } else if (kernel_version == "adaptive") {
+        kernel_wrapper_adaptive(d_u, d_u_new, rows, cols, alpha, reads, deviceId);
+    } else {
+        kernel_wrapper_tunable_stride(d_u, d_u_new, rows, cols, alpha, 1, deviceId);
+    }
+}
+
 bool test_kernel_uniform_field(
     const std::vector<float> uniform_field,
     std::vector<float>       u_new,
     int                      rows,
     int                      cols,
     float                    alpha,
-    std::string              kernel_version
-) 
-{
-    // A uniform field is a fixed point of the heat equation: one GPU step must
-    // leave every cell at the original constant value.
+    std::string              kernel_version,
+    int                      stride,
+    int                      block_size,
+    int                      grid_size,
+    access_distribution      reads
+) {
     int deviceId = select_device();
     size_t bytes = rows * cols * sizeof(float);
 
@@ -66,12 +96,11 @@ bool test_kernel_uniform_field(
     HIP_CHECK(hipMemcpy(d_u,     uniform_field.data(), bytes, hipMemcpyHostToDevice));
     HIP_CHECK(hipMemcpy(d_u_new, u_new.data(),         bytes, hipMemcpyHostToDevice));
 
-    // "default" is the only kernel version currently
-    heat_equation_neumann_step(d_u, d_u_new, rows, cols, alpha, 1, deviceId);
+    dispatch_kernel(d_u, d_u_new, rows, cols, alpha,
+                    kernel_version, stride, block_size, grid_size, reads, deviceId);
     HIP_CHECK(hipDeviceSynchronize());
 
     HIP_CHECK(hipMemcpy(u_new.data(), d_u_new, bytes, hipMemcpyDeviceToHost));
-
     HIP_CHECK(hipFree(d_u));
     HIP_CHECK(hipFree(d_u_new));
 
@@ -95,30 +124,30 @@ bool test_kernel_cpu(
     int                      rows,
     int                      cols,
     float                    alpha,
-    std::string              kernel_version
-) 
-{
+    std::string              kernel_version,
+    int                      stride,
+    int                      block_size,
+    int                      grid_size,
+    access_distribution      reads
+) {
     int deviceId = select_device();
     size_t bytes = rows * cols * sizeof(float);
 
-    // Run GPU kernel and copy result back into d_u_new
-    float* d_u      = nullptr;
+    float* d_u         = nullptr;
     float* d_u_new_dev = nullptr;
-    HIP_CHECK(hipMalloc(&d_u,        bytes));
+    HIP_CHECK(hipMalloc(&d_u,         bytes));
     HIP_CHECK(hipMalloc(&d_u_new_dev, bytes));
     HIP_CHECK(hipMemcpy(d_u,         input_field.data(), bytes, hipMemcpyHostToDevice));
     HIP_CHECK(hipMemcpy(d_u_new_dev, d_u_new.data(),     bytes, hipMemcpyHostToDevice));
 
-    // "default" is the only kernel version currently
-    heat_equation_neumann_step(d_u, d_u_new_dev, rows, cols, alpha, 1, deviceId);
+    dispatch_kernel(d_u, d_u_new_dev, rows, cols, alpha,
+                    kernel_version, stride, block_size, grid_size, reads, deviceId);
     HIP_CHECK(hipDeviceSynchronize());
 
     HIP_CHECK(hipMemcpy(d_u_new.data(), d_u_new_dev, bytes, hipMemcpyDeviceToHost));
-
     HIP_CHECK(hipFree(d_u));
     HIP_CHECK(hipFree(d_u_new_dev));
 
-    // Run CPU reference
     h_u_new = heat_equation_neumann_cpu(input_field, h_u_new, rows, cols, alpha);
 
     const float tol = 1e-4f;

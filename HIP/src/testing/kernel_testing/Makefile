@@ -1,13 +1,13 @@
 HIPCC    := hipcc
 HIPFLAGS := -std=c++17 -O2
 
-ROOT     := ../../..
-INC      := ../../include
-IMPL_DIR := ../implementation
+ROOT     := ../../../..
+INC      := ../../../include
+IMPL_DIR := ../../implementation/kernels
 DATA_DIR := $(ROOT)/data_pipeline
 
 OBJ_DIR := obj
-BIN     := heat_test
+BIN     := kernel_test
 
 SRCS := main.cc correctness.cc timing.cc
 OBJS := $(SRCS:%.cc=$(OBJ_DIR)/%.o)
