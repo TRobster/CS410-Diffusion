@@ -50,5 +50,6 @@ int determine_ideal_cu_occupancy(access_distribution accesses);
 int determine_stride(int total_simd, int rank, uint64_t nnz);
 std::pair<int,int> determine_dimensions_stride(int arr_size, int block_size, int stride);
 std::pair<int, int> determine_dimensions_occupancy(int arr_size, int block_size, int occupancy);
+std::pair<std::pair<int, int>, int> determine_dimensions_and_stride_occupancy(int arr_size, int block_size, int occupancy);
 
 #endif

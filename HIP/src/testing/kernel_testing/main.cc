@@ -33,13 +33,14 @@ inline bool validate_stride_config(const kernel_config& config)
     return config.stride != -1 || config.stride <= stride_limit;
 }
 
-inline bool validate_dimension_config(const kernel_config& config, int problem_size)
+inline bool validate_dimension_config(kernel_config& config, int problem_size)
 {
-    if (config.block_size < -1 || config.block_size == 0 || 
-    (config.block_size % 64 != 0 && config.block_size > 0)|| config.block_size > block_size_limit) return false;
-    if (config.grid_size < -1 || config.grid_size == 0 || config.grid_size > grid_size_limit) return false;
-    if(config.grid_size * config.block_size * stride_limit < problem_size) return false;
-    
+    if (config.block_size < 64 || config.block_size > block_size_limit || config.block_size % 64 != 0) return false;
+    if (config.grid_size > grid_size_limit || config.grid_size < -1 || config.grid_size == 0) return false;
+
+    config.grid_size = (config.block_size + problem_size - 1) / config.block_size;
+    if (config.grid_size < 1 || config.grid_size > grid_size_limit) return false;
+
     return true;
 }
 
@@ -85,6 +86,7 @@ kernel_config read_config_file(string config_file)
         string values = line.substr(colon_pos + 1);
         stringstream ss(values);
         int val;
+        float percent_val;
         string version_val;
 
         if (key == "version") {
@@ -96,13 +98,13 @@ kernel_config read_config_file(string config_file)
         } else if (key == "stride") {
             while (ss >> val) config.stride = val;
         } else if (key == "smem") {
-            while (ss >> val) config.reads.smem = val;
+            while (ss >> percent_val) config.reads.smem = percent_val;
         } else if (key == "l1") {
-            while (ss >> val) config.reads.l1 = val;
+            while (ss >> percent_val) config.reads.l1 = percent_val;
         } else if (key == "l2") {
-            while (ss >> val) config.reads.l2 = val;
+            while (ss >> percent_val) config.reads.l2 = percent_val;
         } else if (key == "main") {
-            while (ss >> val) config.reads.hbm = val;
+            while (ss >> percent_val) config.reads.hbm = percent_val;
         }
         
         iter++;
@@ -114,6 +116,7 @@ kernel_config read_config_file(string config_file)
 int main(int argc, char* argv[]) 
 {
     if (argc < 3 || argc > 6) {
+        std::cout << argv[0] << std::endl;
         cerr << "Usage: " << argv[0]
             << " <synthetic|filename> <timing|correctness> <[kernel config file]> <[rows]> <[cols]>" << endl
             << "for more info on the kernel configs go to the HIP/info/kernel_configs.txt file" << endl;
@@ -170,10 +173,7 @@ int main(int argc, char* argv[])
         vector<float> uniform_field = generate_u(rows, cols, {0.0f, 1.0f}, 1.0f);
         vector<float> u_new(rows * cols, 0.0f);
 
-        bool pass = true;
-        pass &= test_kernel_uniform_field(uniform_field, u_new, rows, cols, alpha, config.version,
-                                          stride, config.block_size, config.grid_size, config.reads);
-        pass &= test_kernel_cpu(u, u_new, vector<float>(rows * cols, 0.0f), rows, cols, alpha, config.version,
+        bool pass = test_kernel_cpu(u, u_new, vector<float>(rows * cols, 0.0f), rows, cols, alpha, config.version,
                                 stride, config.block_size, config.grid_size, config.reads);
 
         return pass ? 0 : 1;

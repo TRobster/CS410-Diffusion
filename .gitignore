@@ -7,7 +7,20 @@
 pgm_files/
 
 obj/
+build/
 
+# Compiled Object files
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+
+# Executables and Static Libraries
+*.exe
+*.out
+*.app
 *.a
+*.lib
 
-heat_test
+

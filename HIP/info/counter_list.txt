@@ -1134,7 +1134,7 @@ Block               :	SQ
 Dimensions          :	DIMENSION_INSTANCE[0:0] DIMENSION_XCC[0:5] DIMENSION_SHADER_ENGINE[0:3]
 
 
-Counter_Name        :	SQ_INSTS_VMEM_RD
+Counter_Name        :	SQ_INSTS_LDS
 Description         :	The number of VMEM (GPU Memory) read instructions issued (including FLAT/scratch memory). The value is returned per-SE (aggregate of values in SIMDs in the SE).
 Block               :	SQ
 Dimensions          :	DIMENSION_INSTANCE[0:0] DIMENSION_XCC[0:5] DIMENSION_SHADER_ENGINE[0:3]

@@ -64,6 +64,18 @@ void time_kernel(
     std::vector<float> times;
     times.reserve(iterations);
 
+    for(int i = 0; i < 5; i++){
+        if (kernel_version == "stride") {
+            kernel_wrapper_tunable_stride(d_u, d_u_new, rows, cols, alpha, kernel_stride, deviceId);
+        } else if (kernel_version == "dimension") {
+            kernel_wrapper_tunable_dimensions(d_u, d_u_new, rows, cols, alpha, block_size, grid_size, deviceId);
+        } else if (kernel_version == "adaptive") {
+            kernel_wrapper_adaptive(d_u, d_u_new, rows, cols, alpha, reads, deviceId);
+        } else {
+            kernel_wrapper_tunable_stride(d_u, d_u_new, rows, cols, alpha, 1, deviceId);
+        }
+    }
+
     for (int i = 0; i < iterations; i++) {
         HIP_CHECK(hipEventRecord(ev_start));
 

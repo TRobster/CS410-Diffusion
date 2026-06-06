@@ -1,5 +1,8 @@
 #include "solver_correctness.h"
 #include "heat_equation.h"
+#include <cstdio>
+#include <cstdlib>
+#include <utility>   
 #include <random>
 #include <cmath>
 
@@ -103,6 +106,6 @@ bool test_solver_cpu(
             return false;
         }
     }
-    std::cout << "PASSED CPU-vs-solver test\n";
+
     return true;
 }

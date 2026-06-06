@@ -1,0 +1,4 @@
+Mean for 1024 x 1024: 0.0147515 ms
+Mean for 2048 x 2048: 0.0220529 ms
+Mean for 4096 x 4096: 0.0671485 ms
+Mean for 8192 x 8192: 0.338945 ms

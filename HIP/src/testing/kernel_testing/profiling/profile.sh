@@ -16,17 +16,19 @@ shift
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TESTING_DIR="$(dirname "$SCRIPT_DIR")"
-HEAT_TEST="$TESTING_DIR/heat_test"
+KERNEL_TEST="$TESTING_DIR/kernel_test"
 
 # Resolve yaml_file to absolute path from the caller's working directory
 if [[ "$YAML_FILE" != /* ]]; then
-    YAML_FILE="$(pwd)/$YAML_FILE"
+    YAML_FILE="$(pwd)/profiling/yaml_files/$YAML_FILE"
 fi
 
 # Run from testing/ so relative paths like config_files/stride.txt resolve correctly
 cd "$TESTING_DIR"
 
-rocprofv3 -i "$YAML_FILE" -- "$HEAT_TEST" "$@"
+echo $TESTING_DIR
+
+rocprofv3 -i "$YAML_FILE" -- "$KERNEL_TEST" "$@"
 
 cd "$SCRIPT_DIR"
 python3 csv_cleanup/extract_counters.py \

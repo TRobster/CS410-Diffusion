@@ -200,8 +200,9 @@ std::pair<int, int> determine_block_dimensions(int blocksize)
 // Average of shared memory, global, and L1 latencies (in cycles)
 int determine_avg_latency(access_distribution accesses) {
 
-    return accesses.hbm * get_global_latency() + accesses.smem * SMEM_LATENCY
-    + accesses.l1 * L1_LATENCY  + accesses.l2 * L2_LATENCY;
+    float latency = accesses.hbm * get_global_latency() + accesses.smem * SMEM_LATENCY
+    + accesses.l1 * L1_LATENCY + accesses.l2 * L2_LATENCY;
+    return static_cast<int>(latency);
 }
 
 // Average of shared memory, global, and L1 bandwidths (in GB/s)
@@ -249,13 +250,16 @@ pair<int,int> determine_dimensions_stride(int arr_size, int block_size, int stri
 
 // Grid dimensions that achieve the target wavefront occupancy across all CUs,
 // while still covering every element of the array
-pair<int, int> determine_dimensions_occupancy(int arr_size, int block_size, int occupancy) {
+pair<pair<int, int>, int> determine_dimensions_and_stride_occupancy(int arr_size, int block_size, int occupancy) {
+
     const int wavefront_size = 64; // AMD wavefront is 64 threads
     int cu_count = get_compute_units();
     int total_threads = occupancy * wavefront_size * cu_count;
     int gridsize = max(1, total_threads / block_size);
     // Ensure full coverage of the array
-    int min_gridsize = (arr_size + block_size - 1) / block_size;
+    int min_gridsize = ((arr_size / 25) + block_size - 1) / block_size;
     gridsize = max(gridsize, min_gridsize);
-    return {gridsize, block_size};
+    int total_threads_launched = block_size * gridsize;
+    int stride = max(1, (total_threads_launched + arr_size - 1) / total_threads_launched);
+    return {{gridsize, block_size}, stride};
 }

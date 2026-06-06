@@ -1,5 +1,5 @@
 jobs:
-  - pmc: ["SQ_INSTS_VALU", "SQ_INSTS_LDS"]
+  - pmc: ["SQ_INSTS_LDS", "SQ_INSTS_VMEM_RD"]
     kernel_include_regex: ".*kernel*"
     truncate_kernels: true
     output_format: ["csv"]
@@ -9,7 +9,7 @@ jobs:
     truncate_kernels: true
     output_format: ["csv"]
     output_file: "out"
-  - pmc: ["MemUnitStalled", "FETCH_SIZE"]
+  - pmc: ["MemUnitStalled", "LdsLatency"]
     kernel_include_regex: ".*kernel*"
     truncate_kernels: true
     output_format: ["csv"]

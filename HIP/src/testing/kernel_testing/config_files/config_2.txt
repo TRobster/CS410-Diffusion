@@ -1,0 +1,2 @@
+version: dimension
+blocksize: 1024
