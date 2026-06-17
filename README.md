@@ -1,4 +1,4 @@
-# CS410-Diffusion
+# Pixel Blurring Using 2D Heat Diffusion Equation
 Group project coding image smoothing using diffusion
 
 
